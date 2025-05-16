@@ -3,6 +3,9 @@
 package io.github.yangentao.charcode
 
 object CharCode {
+    val CrLf: List<Char> = listOf(CR, LF)
+    val SpTab: List<Char> = listOf(SP, HTAB)
+    val SpTabCrLf: List<Char> = listOf(SP, HTAB, CR, LF)
 
     fun isUnicodeLead(code: Char): Boolean {
         return code >= Character.MIN_HIGH_SURROGATE && code <= Character.MAX_HIGH_SURROGATE
@@ -29,9 +32,6 @@ object CharCode {
     }
 
     fun isPrintable(code: Char): Boolean = code >= SP
-
-    val SpTab: List<Char> = listOf(SP, HTAB)
-    val SpTabCrLf: List<Char> = listOf(SP, HTAB, CR, LF)
 
     /// Null character
     const val NUL: Char = '\u0000'

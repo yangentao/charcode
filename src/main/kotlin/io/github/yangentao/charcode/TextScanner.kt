@@ -13,12 +13,18 @@ class TextScanner(val text: String) {
     val contexts: ContextStack = ContextStack()
 
     val isEnd: Boolean get() = position >= codeList.size
+    val notEnd: Boolean get() = position < codeList.size
+
     val isStart: Boolean get() = position == 0
     val nowChar: Char get() = codeList[position]
     val preChar: Char? get() = if (position >= 1) codeList[position - 1] else null
     val lastMatch: String get() = if (lastBuf.isEmpty()) "" else String(lastBuf.toCharArray())
 
     var nextCallback: (() -> Unit)? = null
+
+    fun nowIsAny(vararg cs: Char): Boolean {
+        return notEnd && nowChar in cs
+    }
 
     fun savePosition(): ScanPos = ScanPos(this, position)
 
