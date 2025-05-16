@@ -16,7 +16,7 @@ plugins {
 
 group = "io.github.yangentao"
 
-version = "1.0.0"
+version = "1.0.1"
 val artifactName = "charcode"
 val githubLib = "charcode"
 val descLib = "Kotlin Char Code."

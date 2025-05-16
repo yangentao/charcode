@@ -10,11 +10,15 @@ class TextScanner(val text: String) {
     var position: Int = 0
     var lastBuf: ArrayList<Char> = ArrayList()
 
+    val contexts: ContextStack = ContextStack()
+
     val isEnd: Boolean get() = position >= codeList.size
     val isStart: Boolean get() = position == 0
     val nowChar: Char get() = codeList[position]
     val preChar: Char? get() = if (position >= 1) codeList[position - 1] else null
     val lastMatch: String get() = if (lastBuf.isEmpty()) "" else String(lastBuf.toCharArray())
+
+    var nextCallback: (() -> Unit)? = null
 
     fun savePosition(): ScanPos = ScanPos(this, position)
 
@@ -119,7 +123,7 @@ class TextScanner(val text: String) {
                 val ch = nowChar
                 if (acceptor.accept(ch)) {
                     buf.add(ch)
-                    position += 1
+                    forward(1)
                 } else {
                     return buf
                 }
@@ -132,7 +136,7 @@ class TextScanner(val text: String) {
                     return buf
                 } else {
                     buf.add(ch)
-                    position += 1
+                    forward(1)
                 }
             }
             if (isEnd) return buf
@@ -142,8 +146,14 @@ class TextScanner(val text: String) {
                 raise("Exceed max length: $sz ")
             }
             buf.addAll(codeList.slice(position..<position + sz))
+            forward(sz)
         }
         return buf
+    }
+
+    private fun forward(size: Int) {
+        position += size
+        nextCallback?.invoke()
     }
 
     fun raise(msg: String = "Scan error"): Nothing {
