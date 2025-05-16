@@ -123,7 +123,7 @@ class TextScanner(val text: String) {
                 val ch = nowChar
                 if (acceptor.accept(ch)) {
                     buf.add(ch)
-                    forward(1)
+                    forward(1, fire = true)
                 } else {
                     return buf
                 }
@@ -136,7 +136,7 @@ class TextScanner(val text: String) {
                     return buf
                 } else {
                     buf.add(ch)
-                    forward(1)
+                    forward(1, fire = true)
                 }
             }
             if (isEnd) return buf
@@ -151,9 +151,9 @@ class TextScanner(val text: String) {
         return buf
     }
 
-    private fun forward(size: Int) {
+    private fun forward(size: Int, fire: Boolean = false) {
         position += size
-        nextCallback?.invoke()
+        if (fire) nextCallback?.invoke()
     }
 
     fun raise(msg: String = "Scan error"): Nothing {
