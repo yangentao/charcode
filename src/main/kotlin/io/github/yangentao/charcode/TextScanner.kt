@@ -54,11 +54,6 @@ class TextScanner(val text: String) {
         return moveNext(size, acceptor, terminator, false)
     }
 
-    fun moveUntil(chars: List<Char>): List<Char> {
-        assert(chars.isNotEmpty())
-        return moveNext(terminator = { chars.contains(it) })
-    }
-
     fun expectAnyChar(chars: Collection<Char>): List<Char> {
         assert(chars.isNotEmpty())
         val ls = moveNext(acceptor = { chars.contains(it) })
@@ -118,43 +113,68 @@ class TextScanner(val text: String) {
         return ls
     }
 
-    /// if size,acceptor,terminator all is null, moveNext(size = 1)
-    fun moveNext(size: Int? = null, acceptor: CharPredicator? = null, terminator: CharPredicator? = null, buffered: Boolean = true): List<Char> {
+    fun moveUntil(chars: List<Char>): List<Char> {
+        assert(chars.isNotEmpty())
+        return moveUntil({ chars.contains(it) })
+    }
+
+    fun moveUntil(terminator: CharPredicator, buffered: Boolean = true): List<Char> {
         val buf: ArrayList<Char> = ArrayList()
         if (buffered) {
             lastBuf = buf
         }
-        if (acceptor != null) {
-            while (!isEnd) {
-                val ch = nowChar
-                if (acceptor.accept(ch)) {
-                    buf.add(ch)
-                    forward(1, fire = true)
-                } else {
-                    return buf
-                }
+        while (!isEnd) {
+            val ch = nowChar
+            if (terminator.accept(ch)) {
+                return buf
+            } else {
+                buf.add(ch)
+                forward(1, fire = true)
             }
-            if (isEnd) return buf
-        } else if (terminator != null) {
-            while (!isEnd) {
-                val ch = nowChar
-                if (terminator.accept(ch)) {
-                    return buf
-                } else {
-                    buf.add(ch)
-                    forward(1, fire = true)
-                }
-            }
-            if (isEnd) return buf
-        } else {
-            val sz = size ?: 1
-            if (position + sz > codeList.size) {
-                raise("Exceed max length: $sz ")
-            }
-            buf.addAll(codeList.slice(position..<position + sz))
-            forward(sz)
         }
         return buf
+    }
+
+    fun moveAccept(acceptor: CharPredicator, buffered: Boolean = true): List<Char> {
+        val buf: ArrayList<Char> = ArrayList()
+        if (buffered) {
+            lastBuf = buf
+        }
+        while (!isEnd) {
+            val ch = nowChar
+            if (acceptor.accept(ch)) {
+                buf.add(ch)
+                forward(1, fire = true)
+            } else {
+                return buf
+            }
+        }
+        return buf
+    }
+
+    fun moveSize(size: Int, buffered: Boolean = true): List<Char> {
+        val buf: ArrayList<Char> = ArrayList()
+        if (buffered) {
+            lastBuf = buf
+        }
+        if (position + size > codeList.size) {
+            raise("Exceed max length: $size ")
+        }
+        buf.addAll(codeList.slice(position..<position + size))
+        forward(size)
+        return buf
+    }
+
+    /// if size,acceptor,terminator all is null, moveNext(size = 1)
+    fun moveNext(size: Int? = null, acceptor: CharPredicator? = null, terminator: CharPredicator? = null, buffered: Boolean = true): List<Char> {
+        if (acceptor != null) {
+            return moveAccept(acceptor, buffered)
+        } else if (terminator != null) {
+            return moveUntil(terminator, buffered)
+        } else {
+            val sz = size ?: 1
+            return moveSize(sz, buffered)
+        }
     }
 
     private fun forward(size: Int, fire: Boolean = false) {
