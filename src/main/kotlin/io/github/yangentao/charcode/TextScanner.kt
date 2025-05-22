@@ -113,6 +113,32 @@ class TextScanner(val text: String) {
         return ls
     }
 
+    fun moveAcceptTerminate(acceptor: CharPredicator, terminator: CharPredicator, buffered: Boolean = true, terminateFirst: Boolean = true): List<Char> {
+        val buf: ArrayList<Char> = ArrayList()
+        if (buffered) {
+            lastBuf = buf
+        }
+        while (notEnd) {
+            val ch = nowChar
+            if (terminateFirst && terminator.accept(ch)) {
+                break
+            }
+            if (acceptor.accept(ch)) {
+                buf.add(ch)
+                forward(1, fire = true)
+                if (!terminateFirst && terminator.accept(ch)) {
+                    break
+                }
+                continue
+            }
+            if (!terminateFirst && terminator.accept(ch)) {
+                break
+            }
+            break
+        }
+        return buf
+    }
+
     fun moveUntil(chars: List<Char>): List<Char> {
         assert(chars.isNotEmpty())
         return moveUntil({ chars.contains(it) })
